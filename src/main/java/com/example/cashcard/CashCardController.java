@@ -22,6 +22,8 @@ public class CashCardController {
         return cashCardOptional.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
+    // It is interesting to use UriComponentsBuilder because of the whole context that
+    // it's inject on your controller
     @PostMapping
     private ResponseEntity<Void> createCashCard(
             @RequestBody CashCard newCashCardRequest, UriComponentsBuilder ucb) {
