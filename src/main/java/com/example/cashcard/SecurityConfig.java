@@ -4,6 +4,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -20,9 +21,8 @@ class SecurityConfig {
     SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.authorizeHttpRequests(request -> request
                         .requestMatchers("/cashcards/**")
-                        .authenticated())
-                .httpBasic(Customizer.withDefaults())
-                .csrf(csrf -> csrf.disable());
+                        .hasRole("CARD-OWNER")).httpBasic(Customizer.withDefaults())
+                .csrf(AbstractHttpConfigurer::disable);
         return http.build();
     }
 
@@ -37,8 +37,13 @@ class SecurityConfig {
         UserDetails sarah = users
                 .username("sarah1")
                 .password(passwordEncoder.encode("abc123"))
-                .roles()
+                .roles("CARD-OWNER")
                 .build();
-        return new InMemoryUserDetailsManager(sarah);
+        UserDetails hankOwnsNoCards = users
+                .username("hank-owns-no-cards")
+                .password(passwordEncoder.encode("qrs456"))
+                .roles("NON-OWNER")
+                .build();
+        return new InMemoryUserDetailsManager(sarah, hankOwnsNoCards);
     }
 }

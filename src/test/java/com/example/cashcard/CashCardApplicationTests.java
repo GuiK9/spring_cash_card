@@ -41,12 +41,9 @@ class CashCardApplicationTests {
 	void shouldNotReturnACashCardWithAnUnknownId() {
 		ResponseEntity<String> response = restTemplate
 				.withBasicAuth("sarah1", "abc123")
-				.getForEntity("/cashcard/1000", String.class);
+				.getForEntity("/cashcards/1000", String.class);
 		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
-
-		DocumentContext documentContext = JsonPath.parse(response.getBody());
-		String errorMessage = documentContext.read("$.error");
-		assertThat(errorMessage).isEqualTo("Not Found");
+		assertThat(response.getBody()).isBlank();
 	}
 
 	@Test
@@ -147,6 +144,15 @@ class CashCardApplicationTests {
 				.withBasicAuth("sarah1", "BAD-PASSWORD")
 				.getForEntity("/cashcards/99", String.class);
 		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+	}
+
+	@Test
+	void shouldRejectUsersWhoAreNotCardOwners() {
+		ResponseEntity<String> response = restTemplate
+				.withBasicAuth("hank-owns-no-cards", "qrs456")
+				.getForEntity("/cashcards/99", String.class);
+
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
 	}
 
 }
