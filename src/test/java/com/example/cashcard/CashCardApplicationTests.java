@@ -160,6 +160,7 @@ class CashCardApplicationTests {
 	}
 
 	@Test
+	@DirtiesContext
 	void shouldUpdateAnExistingCashCard() {
 		CashCard cashCardUpdate = new CashCard(null, 19.99, null);
 		HttpEntity<CashCard> request = new HttpEntity<>(cashCardUpdate);
