@@ -48,7 +48,7 @@ class CashCardApplicationTests {
 
 	@Test
 	@DirtiesContext
-	void ShoudlCreateANewCashCard() {
+	void shouldCreateANewCashCard() {
 		CashCard newCashCard = new CashCard(null, 250.00, "sarah1");
 		ResponseEntity<Void> createResponse = restTemplate
 				.withBasicAuth("sarah1", "abc123")
@@ -153,6 +153,16 @@ class CashCardApplicationTests {
 				.getForEntity("/cashcards/99", String.class);
 
 		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+	}
+
+	@Test
+	void shouldNotAllowAcessToCashCardsTheyDoNotOwn() {
+		ResponseEntity<String> response = restTemplate
+				.withBasicAuth("sarah1", "abc123")
+				.getForEntity("/cashcards/102", String.class);
+
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+
 	}
 
 }
