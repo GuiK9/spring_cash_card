@@ -16,7 +16,6 @@ import java.net.URI;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-//@DirtiesContext(classMode = ClassMode.AFTER_EACH_TEST_METHOD)
 class CashCardApplicationTests {
 	@Autowired
 	TestRestTemplate restTemplate;
@@ -26,7 +25,6 @@ class CashCardApplicationTests {
 		ResponseEntity<String> response = restTemplate
 				.withBasicAuth("sarah1", "abc123")
 				.getForEntity("/cashcards/99", String.class);
-
 		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
 
 		DocumentContext documentContext = JsonPath.parse(response.getBody());
@@ -42,6 +40,7 @@ class CashCardApplicationTests {
 		ResponseEntity<String> response = restTemplate
 				.withBasicAuth("sarah1", "abc123")
 				.getForEntity("/cashcards/1000", String.class);
+
 		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
 		assertThat(response.getBody()).isBlank();
 	}
@@ -49,11 +48,10 @@ class CashCardApplicationTests {
 	@Test
 	@DirtiesContext
 	void shouldCreateANewCashCard() {
-		CashCard newCashCard = new CashCard(null, 250.00, "sarah1");
+		CashCard newCashCard = new CashCard(null, 250.00, null);
 		ResponseEntity<Void> createResponse = restTemplate
 				.withBasicAuth("sarah1", "abc123")
 				.postForEntity("/cashcards", newCashCard, Void.class);
-
 		assertThat(createResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
 
 		URI locationOfNewCashCard = createResponse.getHeaders().getLocation();
@@ -75,7 +73,6 @@ class CashCardApplicationTests {
 		ResponseEntity<String> response = restTemplate
 				.withBasicAuth("sarah1", "abc123")
 				.getForEntity("/cashcards", String.class);
-
 		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
 
 		DocumentContext documentContext = JsonPath.parse(response.getBody());
@@ -86,15 +83,14 @@ class CashCardApplicationTests {
 		assertThat(ids).containsExactlyInAnyOrder(99, 100, 101);
 
 		JSONArray amounts = documentContext.read("$..amount");
-		assertThat(amounts).containsExactlyInAnyOrder(123.45, 1.0, 150.00);
+		assertThat(amounts).containsExactlyInAnyOrder(123.45, 1.00, 150.00);
 	}
 
 	@Test
-	void ShouldReturnAPageOfCashCards() {
+	void shouldReturnAPageOfCashCards() {
 		ResponseEntity<String> response = restTemplate
 				.withBasicAuth("sarah1", "abc123")
 				.getForEntity("/cashcards?page=0&size=1", String.class);
-
 		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
 
 		DocumentContext documentContext = JsonPath.parse(response.getBody());
@@ -104,10 +100,9 @@ class CashCardApplicationTests {
 
 	@Test
 	void shouldReturnASortedPageOfCashCards() {
-		ResponseEntity<String> response =
-				restTemplate
-						.withBasicAuth("sarah1", "abc123")
-						.getForEntity("/cashcards?page=0&size=1&sort=amount,desc", String.class);
+		ResponseEntity<String> response = restTemplate
+				.withBasicAuth("sarah1", "abc123")
+				.getForEntity("/cashcards?page=0&size=1&sort=amount,desc", String.class);
 		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
 
 		DocumentContext documentContext = JsonPath.parse(response.getBody());
@@ -151,18 +146,14 @@ class CashCardApplicationTests {
 		ResponseEntity<String> response = restTemplate
 				.withBasicAuth("hank-owns-no-cards", "qrs456")
 				.getForEntity("/cashcards/99", String.class);
-
 		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
 	}
 
 	@Test
-	void shouldNotAllowAcessToCashCardsTheyDoNotOwn() {
+	void shouldNotAllowAccessToCashCardsTheyDoNotOwn() {
 		ResponseEntity<String> response = restTemplate
 				.withBasicAuth("sarah1", "abc123")
-				.getForEntity("/cashcards/102", String.class);
-
+				.getForEntity("/cashcards/102", String.class); // kumar2's data
 		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
-
 	}
-
 }
